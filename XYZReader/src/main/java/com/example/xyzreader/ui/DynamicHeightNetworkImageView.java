@@ -1,6 +1,7 @@
 package com.example.xyzreader.ui;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 
 import com.android.volley.toolbox.NetworkImageView;
@@ -27,8 +28,14 @@ public class DynamicHeightNetworkImageView extends NetworkImageView {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        int measuredWidth = getMeasuredWidth();
-        setMeasuredDimension(measuredWidth, (int) (measuredWidth / mAspectRatio));
+        Drawable drawable = getDrawable();
+        if (drawable != null) {
+            int w = MeasureSpec.getSize(widthMeasureSpec);
+            int h = w * drawable.getIntrinsicHeight() / drawable.getIntrinsicWidth();
+            setMeasuredDimension(w, h);
+        }
+        else {
+            super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        }
     }
 }
