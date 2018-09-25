@@ -23,4 +23,20 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="ExpandedText" parent="@android:style/TextAppearance.Large">
+        <item name="android:textColor">#fff</item>
+        <item name="android:textSize">@dimen/detail_title_text_size</item>
+        <item name="android:fontFamily">sans-serif-condensed</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:lineSpacingMultiplier">0.9</item>
+    </style>
+
+    <style name="CollapsedText" parent="@android:style/TextAppearance.Large">
+        <item name="android:textColor">#fff</item>
+        <item name="android:textSize">@dimen/detail_title_text_size</item>
+        <item name="android:fontFamily">sans-serif-condensed</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:lineSpacingMultiplier">0.9</item>
+    </style>
+
 </resources>
