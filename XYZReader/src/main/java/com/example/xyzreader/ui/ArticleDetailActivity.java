@@ -1,14 +1,15 @@
 package com.example.xyzreader.ui;
 
-import android.app.Fragment;
-import android.app.FragmentManager;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.app.LoaderManager;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import android.support.v13.app.FragmentStatePagerAdapter;
+import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -24,9 +25,55 @@ import com.example.xyzreader.data.ItemsContract;
  * An activity representing a single Article detail screen, letting you swipe between articles.
  */
 public class ArticleDetailActivity extends AppCompatActivity
-        implements LoaderManager.LoaderCallbacks<Cursor> {
+        /*implements LoaderManager.LoaderCallbacks<Cursor>*/ {
+
+    /**
+     * The pager widget, which handles animation and allows swiping horizontally to access previous
+     * and next articles.
+     */
+    private ViewPager mPager;
+
+    /**
+     * The pager adapter, which provides the pages to the view pager widget.
+     */
+    private PagerAdapter mPagerAdapter;
 
     private Cursor mCursor;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_article_detail);
+
+        // Instantiate a ViewPager and a PagerAdapter.
+        mPager = (ViewPager) findViewById(R.id.pager);
+        mPagerAdapter = new MyPagerAdapter(getSupportFragmentManager());
+        mPager.setAdapter(mPagerAdapter);
+    }
+
+    private class MyPagerAdapter extends FragmentStatePagerAdapter {
+        MyPagerAdapter(FragmentManager fm) {
+            super(fm);
+        }
+
+        @Override
+        public void setPrimaryItem(ViewGroup container, int position, Object object) {
+            super.setPrimaryItem(container, position, object);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            mCursor.moveToPosition(position);
+            return ArticleDetailFragment.newInstance(mCursor.getLong(ArticleLoader.Query._ID));
+        }
+
+        @Override
+        public int getCount() {
+            return (mCursor != null) ? mCursor.getCount() : 0;
+        }
+    }
+
+    /*private Cursor mCursor;
     private long mStartId;
     private long mSelectedItemId;
     private int mSelectedItemUpButtonFloor = Integer.MAX_VALUE;
@@ -122,5 +169,5 @@ public class ArticleDetailActivity extends AppCompatActivity
         public int getCount() {
             return (mCursor != null) ? mCursor.getCount() : 0;
         }
-    }
+    }*/
 }

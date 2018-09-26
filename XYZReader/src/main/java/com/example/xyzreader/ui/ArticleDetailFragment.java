@@ -1,6 +1,7 @@
 package com.example.xyzreader.ui;
 
-import android.app.Fragment;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.app.LoaderManager;
 import android.content.Intent;
 import android.content.Loader;
@@ -44,11 +45,29 @@ import java.util.Objects;
  * either contained in a {@link ArticleListActivity} in two-pane mode (on
  * tablets) or a {@link ArticleDetailActivity} on handsets.
  */
-public class ArticleDetailFragment extends Fragment implements
-        LoaderManager.LoaderCallbacks<Cursor> {
-    private static final String TAG = "ArticleDetailFragment";
+public class ArticleDetailFragment extends Fragment {
 
+    private static final String TAG = "ArticleDetailFragment";
     public static final String ARG_ITEM_ID = "item_id";
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        ViewGroup rootView = (ViewGroup) inflater.inflate(
+                R.layout.fragment_article_detail, container, false);
+
+        return rootView;
+    }
+
+    public static ArticleDetailFragment newInstance(long itemId) {
+        Bundle arguments = new Bundle();
+        arguments.putLong(ARG_ITEM_ID, itemId);
+        ArticleDetailFragment fragment = new ArticleDetailFragment();
+        fragment.setArguments(arguments);
+        return fragment;
+    }
+
+    /*public static final String ARG_ITEM_ID = "item_id";
 
     private Cursor mCursor;
     private long mItemId;
@@ -66,10 +85,10 @@ public class ArticleDetailFragment extends Fragment implements
     // Most time functions can only handle 1902 - 2037
     private GregorianCalendar START_OF_EPOCH = new GregorianCalendar(2,1,1);
 
-    /**
+    *//**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
-     */
+     *//*
     public ArticleDetailFragment() {
     }
 
@@ -263,5 +282,5 @@ public class ArticleDetailFragment extends Fragment implements
     public void onLoaderReset(Loader<Cursor> cursorLoader) {
         mCursor = null;
         bindViews();
-    }
+    }*/
 }
