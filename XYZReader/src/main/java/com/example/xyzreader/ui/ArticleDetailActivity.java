@@ -30,7 +30,7 @@ public class ArticleDetailActivity extends AppCompatActivity
     private long mStartId;
     private long mSelectedItemId;
     private int mSelectedItemUpButtonFloor = Integer.MAX_VALUE;
-    private int mTopInset;
+    private int mPosition;
     private ViewPager mPager;
     private MyPagerAdapter mPagerAdapter;
     private View mUpButtonContainer;
@@ -81,18 +81,16 @@ public class ArticleDetailActivity extends AppCompatActivity
     public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
         mCursor = cursor;
         mPagerAdapter.notifyDataSetChanged();
-
         // Select the start ID
         if (mStartId > 0) {
             mCursor.moveToFirst();
             // TODO: optimize
-            while (!mCursor.isAfterLast()) {
+            while (mCursor.moveToNext()) {
                 if (mCursor.getLong(ArticleLoader.Query._ID) == mStartId) {
-                    final int position = mCursor.getPosition();
-                    mPager.setCurrentItem(position, false);
+                    mPosition = mCursor.getPosition();
+                    mPager.setCurrentItem(mPosition, false);
                     break;
                 }
-                mCursor.moveToNext();
             }
             mStartId = 0;
         }

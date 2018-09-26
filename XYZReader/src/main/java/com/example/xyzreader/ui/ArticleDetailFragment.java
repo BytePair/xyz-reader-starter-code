@@ -115,7 +115,11 @@ public class ArticleDetailFragment extends Fragment implements
         mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    getActivity().finishAfterTransition();
+                }
                 getActivity().onBackPressed();
+                // getActivity().onBackPressed();
             }
         });
 
