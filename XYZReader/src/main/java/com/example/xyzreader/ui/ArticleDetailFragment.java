@@ -7,6 +7,7 @@ import android.content.Loader;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
@@ -28,7 +29,10 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.example.xyzreader.R;
 import com.example.xyzreader.data.ArticleLoader;
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -198,26 +202,30 @@ public class ArticleDetailFragment extends Fragment implements
             }
             mCollapsingToolbar.setTitle(mCursor.getString(ArticleLoader.Query.TITLE));
             mBodyView.setText(Html.fromHtml(mCursor.getString(ArticleLoader.Query.BODY).replaceAll("(\r\n|\n)", "<br />")));
-            ImageLoaderHelper.getInstance(getActivity()).getImageLoader()
-                    .get(mCursor.getString(ArticleLoader.Query.PHOTO_URL), new ImageLoader.ImageListener() {
+
+            // set image
+            Picasso.get()
+                    .load(mCursor.getString(ArticleLoader.Query.THUMB_URL))
+                    .error(R.drawable.empty_detail)
+                    .into(new Target() {
+
                         @Override
-                        public void onResponse(ImageLoader.ImageContainer imageContainer, boolean b) {
-                            Bitmap bitmap = imageContainer.getBitmap();
-                            if (bitmap != null) {
-                                Palette p = Palette.generate(bitmap, 12);
-                                mMutedColor = p.getDarkMutedColor(0xFF333333);
-                                mPhotoView.setImageBitmap(imageContainer.getBitmap());
-                                mRootView.findViewById(R.id.meta_bar)
-                                        .setBackgroundColor(mMutedColor);
-                                mBodyView.setTextColor(mMutedColor);
-                                updateAppBar();
-                            }
+                        public void onBitmapLoaded (final Bitmap bitmap, Picasso.LoadedFrom from) {
+                            // set it in the ImageView
+                            mPhotoView.setImageBitmap(bitmap);
+
+                            // get muted color and set it where required
+                            Palette palette = Palette.from(bitmap).generate();
+                            mMutedColor = palette.getDarkMutedColor(0xFF333333);
+                            mRootView.findViewById(R.id.meta_bar).setBackgroundColor(mMutedColor);
+                            mBodyView.setTextColor(mMutedColor);
                         }
 
                         @Override
-                        public void onErrorResponse(VolleyError volleyError) {
+                        public void onPrepareLoad(Drawable placeHolderDrawable) {}
 
-                        }
+                        @Override
+                        public void onBitmapFailed(Exception e, Drawable errorDrawable) {}
                     });
         } else {
             mRootView.setVisibility(View.GONE);
