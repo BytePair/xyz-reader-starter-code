@@ -1,19 +1,20 @@
 package com.example.xyzreader.ui;
 
+import android.annotation.SuppressLint;
 import android.app.Fragment;
 import android.app.LoaderManager;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.ShareCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.graphics.Palette;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.text.format.DateUtils;
@@ -25,18 +26,16 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.ImageLoader;
 import com.example.xyzreader.R;
 import com.example.xyzreader.data.ArticleLoader;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
-import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.Locale;
 import java.util.Objects;
 
 /**
@@ -58,10 +57,10 @@ public class ArticleDetailFragment extends Fragment implements
     private ImageView mPhotoView;
     private CollapsingToolbarLayout mCollapsingToolbar;
     private Toolbar mToolbar;
-    private TextView mBodyView;
 
-    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sss");
+    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sss", Locale.US);
     // Use default locale format
+    @SuppressLint("SimpleDateFormat")
     private SimpleDateFormat outputFormat = new SimpleDateFormat();
     // Most time functions can only handle 1902 - 2037
     private GregorianCalendar START_OF_EPOCH = new GregorianCalendar(2,1,1);
@@ -119,18 +118,11 @@ public class ArticleDetailFragment extends Fragment implements
         mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    getActivity().finishAfterTransition();
-                }
                 getActivity().onBackPressed();
-                // getActivity().onBackPressed();
             }
         });
 
         mPhotoView = (ImageView) mRootView.findViewById(R.id.photo);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            mPhotoView.setTransitionName("article_image_transition");
-        }
 
         mRootView.findViewById(R.id.share_fab).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -141,7 +133,6 @@ public class ArticleDetailFragment extends Fragment implements
                         .getIntent(), getString(R.string.action_share)));
             }
         });
-
         bindViews();
         updateAppBar();
         return mRootView;
@@ -171,16 +162,13 @@ public class ArticleDetailFragment extends Fragment implements
 
         TextView bylineView = (TextView) mRootView.findViewById(R.id.article_byline);
         bylineView.setMovementMethod(new LinkMovementMethod());
-        mBodyView = (TextView) mRootView.findViewById(R.id.article_body);
+        RecyclerView mBodyView = (RecyclerView) mRootView.findViewById(R.id.article_body);
         mCollapsingToolbar = (CollapsingToolbarLayout) mRootView.findViewById(R.id.collapsing_toolbar);
-
-        mBodyView.setTypeface(Typeface.createFromAsset(getResources().getAssets(), "Rosario-Regular.ttf"));
 
         if (mCursor != null) {
             mRootView.setAlpha(0);
             mRootView.setVisibility(View.VISIBLE);
             mRootView.animate().alpha(1);
-            //titleView.setText(mCursor.getString(ArticleLoader.Query.TITLE));
             Date publishedDate = parsePublishedDate();
             if (!publishedDate.before(START_OF_EPOCH.getTime())) {
                 bylineView.setText(Html.fromHtml(
@@ -191,47 +179,46 @@ public class ArticleDetailFragment extends Fragment implements
                                 + " by <font color='#ffffff'>"
                                 + mCursor.getString(ArticleLoader.Query.AUTHOR)
                                 + "</font>"));
-
             } else {
                 // If date is before 1902, just show the string
                 bylineView.setText(Html.fromHtml(
                         outputFormat.format(publishedDate) + " by <font color='#ffffff'>"
                         + mCursor.getString(ArticleLoader.Query.AUTHOR)
                                 + "</font>"));
-
             }
             mCollapsingToolbar.setTitle(mCursor.getString(ArticleLoader.Query.TITLE));
-            mBodyView.setText(Html.fromHtml(mCursor.getString(ArticleLoader.Query.BODY).replaceAll("(\r\n|\n)", "<br />")));
 
             // set image
             Picasso.get()
                     .load(mCursor.getString(ArticleLoader.Query.THUMB_URL))
                     .error(R.drawable.empty_detail)
                     .into(new Target() {
-
                         @Override
                         public void onBitmapLoaded (final Bitmap bitmap, Picasso.LoadedFrom from) {
                             // set it in the ImageView
                             mPhotoView.setImageBitmap(bitmap);
-
                             // get muted color and set it where required
                             Palette palette = Palette.from(bitmap).generate();
                             mMutedColor = palette.getDarkMutedColor(0xFF333333);
                             mRootView.findViewById(R.id.meta_bar).setBackgroundColor(mMutedColor);
-                            mBodyView.setTextColor(mMutedColor);
                         }
-
                         @Override
                         public void onPrepareLoad(Drawable placeHolderDrawable) {}
 
                         @Override
                         public void onBitmapFailed(Exception e, Drawable errorDrawable) {}
                     });
+
+            // use recycler view instead of single large text view
+            // seems to improve performance, especially when moving between articles
+            mBodyView.setHasFixedSize(true);
+            mBodyView.setLayoutManager(new LinearLayoutManager(getActivityCast()));
+            TextAdapter mTextAdapter = new TextAdapter(Html.fromHtml(mCursor.getString(ArticleLoader.Query.BODY).replaceAll("(\r\n|\n)", "<br />")).toString().split("<br />"));
+            mBodyView.setAdapter(mTextAdapter);
         } else {
             mRootView.setVisibility(View.GONE);
             mToolbar.setTitle("N/A");
             bylineView.setText("N/A" );
-            mBodyView.setText("N/A");
         }
     }
 
@@ -255,7 +242,6 @@ public class ArticleDetailFragment extends Fragment implements
             mCursor.close();
             mCursor = null;
         }
-
         bindViews();
     }
 
@@ -263,5 +249,51 @@ public class ArticleDetailFragment extends Fragment implements
     public void onLoaderReset(Loader<Cursor> cursorLoader) {
         mCursor = null;
         bindViews();
+    }
+
+    public class TextAdapter extends RecyclerView.Adapter<TextAdapter.MyViewHolder> {
+        private String[] mDataset;
+
+        // Provide a reference to the views for each data item
+        // Complex data items may need more than one view per item, and
+        // you provide access to all the views for a data item in a view holder
+        public class MyViewHolder extends RecyclerView.ViewHolder {
+            // each data item is just a string in this case
+            public TextView mTextView;
+            public MyViewHolder(TextView v) {
+                super(v);
+                mTextView = v;
+            }
+        }
+
+        // Provide a suitable constructor
+        public TextAdapter(String[] myDataset) {
+            mDataset = myDataset;
+        }
+
+        // Create new views (invoked by the layout manager)
+        @Override
+        public TextAdapter.MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            // create a new view
+            TextView v = (TextView) LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.simple_text_view, parent, false);
+
+            return new MyViewHolder(v);
+        }
+
+        // Replace the contents of a view (invoked by the layout manager)
+        @Override
+        public void onBindViewHolder(MyViewHolder holder, int position) {
+            // - get element from your dataset at this position
+            // - replace the contents of the view with that element
+            holder.mTextView.setText(mDataset[position]);
+            holder.mTextView.setTextColor(mMutedColor);
+        }
+
+        // Return the size of your dataset (invoked by the layout manager)
+        @Override
+        public int getItemCount() {
+            return mDataset.length;
+        }
     }
 }
