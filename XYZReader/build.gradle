@@ -15,11 +15,11 @@ repositories {
 }
 
 android {
-    compileSdkVersion 25
+    compileSdkVersion 28
 
     defaultConfig {
         minSdkVersion 19
-        targetSdkVersion 25
+        targetSdkVersion 28
     }
 }
 
@@ -35,4 +35,6 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:3.10.0'
     implementation 'com.squareup.picasso:picasso:2.71828'
     implementation files('libs/volley.jar')
+    // required to resolve warning about older version from 3rd party
+    implementation "com.android.support:exifinterface:$androidSupportVersion"
 }

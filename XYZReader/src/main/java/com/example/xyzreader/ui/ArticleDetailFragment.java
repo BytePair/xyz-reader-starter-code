@@ -46,7 +46,8 @@ import java.util.Objects;
 public class ArticleDetailFragment extends Fragment implements
         LoaderManager.LoaderCallbacks<Cursor> {
     private static final String TAG = "ArticleDetailFragment";
-
+    private static final String BREAK = "<br />";
+    private static final String NA = "N/A";
     public static final String ARG_ITEM_ID = "item_id";
 
     private Cursor mCursor;
@@ -70,6 +71,7 @@ public class ArticleDetailFragment extends Fragment implements
      * fragment (e.g. upon screen orientation changes).
      */
     public ArticleDetailFragment() {
+        // required empty constructor
     }
 
     public static ArticleDetailFragment newInstance(long itemId) {
@@ -133,8 +135,7 @@ public class ArticleDetailFragment extends Fragment implements
                         .getIntent(), getString(R.string.action_share)));
             }
         });
-        bindViews();
-        updateAppBar();
+        mRootView.setAlpha(0);
         return mRootView;
     }
 
@@ -203,22 +204,26 @@ public class ArticleDetailFragment extends Fragment implements
                             mRootView.findViewById(R.id.meta_bar).setBackgroundColor(mMutedColor);
                         }
                         @Override
-                        public void onPrepareLoad(Drawable placeHolderDrawable) {}
+                        public void onPrepareLoad(Drawable placeHolderDrawable) {
+                            // required by target but not used
+                        }
 
                         @Override
-                        public void onBitmapFailed(Exception e, Drawable errorDrawable) {}
+                        public void onBitmapFailed(Exception e, Drawable errorDrawable) {
+                            // required by target but not used
+                        }
                     });
 
             // use recycler view instead of single large text view
             // seems to improve performance, especially when moving between articles
             mBodyView.setHasFixedSize(true);
             mBodyView.setLayoutManager(new LinearLayoutManager(getActivityCast()));
-            TextAdapter mTextAdapter = new TextAdapter(Html.fromHtml(mCursor.getString(ArticleLoader.Query.BODY).replaceAll("(\r\n|\n)", "<br />")).toString().split("<br />"));
+            TextAdapter mTextAdapter = new TextAdapter(Html.fromHtml(mCursor.getString(ArticleLoader.Query.BODY).replaceAll("(\r\n|\n)", BREAK)).toString().split(BREAK));
             mBodyView.setAdapter(mTextAdapter);
         } else {
             mRootView.setVisibility(View.GONE);
-            mToolbar.setTitle("N/A");
-            bylineView.setText("N/A" );
+            mToolbar.setTitle(NA);
+            bylineView.setText(NA);
         }
     }
 
@@ -243,6 +248,7 @@ public class ArticleDetailFragment extends Fragment implements
             mCursor = null;
         }
         bindViews();
+        updateAppBar();
     }
 
     @Override
